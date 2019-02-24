@@ -4,6 +4,8 @@ from headings import headings
 from states import states
 import sys
 
+csv_file_name = "voting_data.csv"
+
 
 def clear_file(path):
     with open(path, "w") as csvfile:
@@ -11,7 +13,7 @@ def clear_file(path):
         data_writer.writerow(headings)
 
 
-def record_data(directory, path, year=2004):
+def record_data_2004(directory, path):
     start_idx = 6
     for state in states:
         wb = open_workbook(f"{directory}/{state}_Jurisdictions.xls")
@@ -30,7 +32,7 @@ def record_data(directory, path, year=2004):
             for idx, juris in enumerate(jurisdictions):
                 cell_row = start_idx + idx
                 data_writer.writerow([
-                    year, state, state_abbrev, juris,
+                    2004, state, state_abbrev, juris,
                     poll_worker_sheet.cell(cell_row, 4).value,
                     poll_worker_sheet.cell(cell_row, 5).value,
                     poll_worker_sheet.cell(cell_row, 6).value,
@@ -47,5 +49,5 @@ def record_data(directory, path, year=2004):
         print(f"{state} data recorded.")
 
 
-clear_file("voting_data.csv")
-record_data(sys.argv[1], "voting_data.csv", 2004)
+clear_file(csv_file_name)
+record_data_2004(sys.argv[1], csv_file_name)
