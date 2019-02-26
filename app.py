@@ -16,13 +16,13 @@ def clear_file(path):
 def record_data_2004(directory, path):
     start_idx = 6
     for state in states.keys():
+        state_abbrev = states[state]
         wb = open_workbook(f"{directory}/{state}_Jurisdictions.xls")
         population_sheet = wb.sheet_by_name('Population Estimates')
         poll_worker_sheet = wb.sheet_by_name('Poll Workers')  # cols 4, 5, 6
         ballots_sheet = wb.sheet_by_name('Ballots Counted')  # cols 4, 5, 6, 7
         absentee_sheet = wb.sheet_by_name('Absentee')  # cols 5, 7, 9
         provisional_sheet = wb.sheet_by_name('Provisional')  # cols 6, 9
-        state_abbrev = states[state]
         jurisdictions = [
             j.value
             for j in population_sheet.col_slice(colx=3, start_rowx=start_idx)
