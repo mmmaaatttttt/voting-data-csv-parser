@@ -51,3 +51,5 @@ states = {
     'Wisconsin': 'WI',
     'Wyoming': 'WY'
 }
+
+states_by_abbreviation = dict((v, k) for k, v in states.items())
