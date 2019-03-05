@@ -1,7 +1,7 @@
 headings = [
-    "year", "state", "state_code", "jurisdiction", "precincts",
-    "polling_places", "poll_workers", "voting_age_pop",
-    "citizen_voting_age_pop", "registration", "ballots_counted",
-    "absentee_requested", "absentee_returned", "absentee_counted",
-    "provisional_cast", "provisional_counted"
+    "year", "state", "state_code", "jurisdiction", "active_registration",
+    "precincts", "polling_places", "poll_workers", "worker_age_group_1",
+    "worker_age_group_2", "worker_age_group_3", "worker_age_group_4",
+    "worker_age_group_5", "worker_age_group_6", "poll_worker_difficulty",
+    "election_participants"
 ]
