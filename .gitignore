@@ -3,3 +3,4 @@ __pycache__
 voting_data.csv
 /data
 .DS_Store
+.env
