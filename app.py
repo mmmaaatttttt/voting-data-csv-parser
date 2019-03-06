@@ -1,6 +1,8 @@
 from xlrd import open_workbook
 from csv import writer
+from decorators import log_start_and_end
 from headings import headings
+from paths import paths
 from states import states, states_by_abbreviation
 import sys
 
@@ -16,27 +18,30 @@ def clear_file(path):
 def clean(record):
     invalid_records = [
         '-999999: Data Not Available', '-888888: Not Applicable', '-9999999',
-        '-8888888', '-6666666', '-88888'
+        '-8888888', '-6666666', '-88888', -999999, '-',
+        'Not enough information to answer'
     ]
     return None if record in invalid_records else record
 
 
-def record_data_2016(data_path, write_path):
+@log_start_and_end
+def record_data_2016(write_path):
     year = 2016
-    data_by_fips = {}
-    wb = open_workbook(data_path)
+    data_by_state_and_juris = {}
+    wb = open_workbook(paths[year])
     a_sheet = wb.sheet_by_name("SECTION A")
     d_sheet = wb.sheet_by_name("SECTION D")
     f_sheet = wb.sheet_by_name("SECTION F")
 
     for ridx in range(1, a_sheet.nrows):
         a_rows = a_sheet.row_values(ridx)
-        a_indices = [0, 1, 2, 8]
-        [fips_code, state_code, jurisdiction,
+        a_indices = [1, 2, 8]
+        [state_code, jurisdiction,
          registrations] = [a_rows[idx] for idx in a_indices]
         state = states_by_abbreviation.get(state_code)
         if state:
-            data_by_fips[fips_code] = [
+            key = f"{state_code}|{jurisdiction}"
+            data_by_state_and_juris[key] = [
                 year, state, state_code,
                 jurisdiction.title(),
                 clean(registrations)
@@ -45,45 +50,73 @@ def record_data_2016(data_path, write_path):
     for ridx in range(1, d_sheet.nrows):
         d_rows = d_sheet.row_values(ridx)
         d_indices = [3, 5, 15, 17, 18, 19, 20, 21, 22, 24]
-        data_list = data_by_fips.get(d_rows[0])
+        key = f"{d_rows[1]}|{d_rows[2]}"
+        data_list = data_by_state_and_juris.get(key)
         if data_list:
             data_list.extend(clean(d_rows[idx]) for idx in d_indices)
 
     for ridx in range(1, f_sheet.nrows):
         f_rows = f_sheet.row_values(ridx)
         f_indices = [3]
-        data_list = data_by_fips.get(f_rows[0])
+        key = f"{f_rows[1]}|{f_rows[2]}"
+        data_list = data_by_state_and_juris.get(key)
         if data_list:
             data_list.extend(clean(f_rows[idx]) for idx in f_indices)
 
-    rows_recorded = 0
     with open(write_path, "a") as csvfile:
         data_writer = writer(csvfile)
-        for key in data_by_fips:
-            data_writer.writerow(data_by_fips[key])
-            rows_recorded += 1
-            if rows_recorded % 500 == 0:
-                print(
-                    f"{round(rows_recorded / len(data_by_fips) * 100, 2)}% complete."
-                )
+        for key in data_by_state_and_juris:
+            data_writer.writerow(data_by_state_and_juris[key])
 
 
-clear_file("voting_data_2016.csv")
-record_data_2016(sys.argv[1], "voting_data_2016.csv")
+@log_start_and_end
+def record_data_2014(write_path):
+    year = 2014
+    data_by_state_and_juris = {}
+    wb = open_workbook(paths[year])
+    a_sheet = wb.sheet_by_name("EAVS_Section_A")
+    d_sheet = wb.sheet_by_name("EAVS_Section_D")
+    f_sheet = wb.sheet_by_name("EAVS_Section_F")
 
-# def record_data_2014(directory, write_path):
-# year - 2014
-# state - states_by_abbreviation[EAVS_Section_A.State]
-# state_code - EAVS_Section_A.State ( C / 2 )
-# jurisdiction - EAVS_Section_A.Jurisdiction ( D / 3 )
-# precints - EAVS_Section_D.QD1a (E / 4)
-# polling_places - EAVS_Section_D.QD2a (G / 6)
-# poll_workers - EAVS_Section_D.QD3a (R / 17)
-# active registration - EAVS_Section_A.QA3a (J / 9)
-# election_participants - EAVS_Section_A.QF1a (E / 4)
+    for ridx in range(1, a_sheet.nrows):
+        a_rows = a_sheet.row_values(ridx)
+        a_indices = [2, 3, 9]
+        [state_code, jurisdiction,
+         registrations] = [a_rows[idx] for idx in a_indices]
+        state = states_by_abbreviation.get(state_code)
+        if state:
+            key = f"{state_code}|{jurisdiction}"
+            data_by_state_and_juris[key] = [
+                year, state, state_code,
+                jurisdiction.title(),
+                clean(registrations)
+            ]
 
-# age distribution of poll workers?? (D4a-D4f)
-# difficulty in finding poll workers?? (D5)
+    for ridx in range(1, d_sheet.nrows):
+        d_rows = d_sheet.row_values(ridx)
+        d_indices = [4, 6, 17, 19, 20, 21, 22, 23, 24, 27]
+        key = f"{d_rows[2]}|{d_rows[3]}"
+        data_list = data_by_state_and_juris.get(key)
+        if data_list:
+            data_list.extend(clean(d_rows[idx]) for idx in d_indices)
+
+    for ridx in range(1, f_sheet.nrows):
+        f_rows = f_sheet.row_values(ridx)
+        f_indices = [4]
+        key = f"{f_rows[2]}|{f_rows[3]}"
+        data_list = data_by_state_and_juris.get(key)
+        if data_list:
+            data_list.extend(clean(f_rows[idx]) for idx in f_indices)
+
+    with open(write_path, "a") as csvfile:
+        data_writer = writer(csvfile)
+        for key in data_by_state_and_juris:
+            data_writer.writerow(data_by_state_and_juris[key])
+
+
+clear_file("voting_data_2014-2016.csv")
+record_data_2016("voting_data_2014-2016.csv")
+record_data_2014("voting_data_2014-2016.csv")
 
 # def record_data_2012(directory, write_path):
 # year - 2012
